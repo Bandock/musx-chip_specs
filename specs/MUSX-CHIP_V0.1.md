@@ -11,6 +11,7 @@ Technical Specifications:
 - Note Duration Timer Register for Tracker Mode (8-bit)
 - Volume Support for Beeper and Tracker Modes
 - Introduces the TSI (Tracker Source Index) Register (Serves as the pointer for Tracker Mode)
+- Tracker Mode Audio Buffer Support
 
 
 Formulas:
@@ -21,6 +22,7 @@ Formulas:
 Beeper Mode and Tracker Mode Operation:
 - Tracker Mode must be enabled using the 00F1 instruction for it to start operating as it is disabled by default.  This gives the opportunity to set the Tracker Source Index register that points to 16-bit data using the Tracker Mode Word Format.  Once Tracker Mode is enabled, it will start playing audio using that data whenever the Sound Timer register is 0.  Tracker Mode is excellent for music or special sound effects.
 - Whenever the Sound Timer Register is nonzero, it will switch to Beeper Mode.  This will operate in the fashion dating back to CHIP-8.  Beeper Mode is excellent for producing sound effects.
+- Beeper Mode and Tracker Mode use their own audio buffers, allowing for Beeper Mode to play their own sound effects separately from Tracker Mode.
 
 
 Registers:
@@ -89,8 +91,9 @@ Supported Instructions:
 |EXA1|Skip the Following Instruction If Hex Key Not Pressed == VX|CHIP-8|No|
 |F000 NNNN|Set I to NNNN|XO-CHIP|No|
 |FN01|Sets the current drawing bit plane (N = 0 for No Draw, N = 1 for Plane 1, N = 2 for Plane 2, N = 3 for Plane 1 and 2)|XO-CHIP|No|
-|F002|Load the audio buffer from memory at I|XO-CHIP|No|
+|F002|Load the Beeper Mode's audio buffer from memory at I|XO-CHIP|No|
 |F003|Sets TSI to I|MUSX-CHIP V0.1|N/A|
+|F004|Load the Tracker Mode's audio buffer from memory at I|MUSX-CHIP V0.1|N/A|
 |FX07|Store Delay Timer to VX|CHIP-8|No|
 |FX18|Set Sound Timer to VX|CHIP-8|No|
 |FX1E|Add Value Stored in VX to I|CHIP-8|No|
@@ -103,4 +106,3 @@ Supported Instructions:
 |FX65|Load V0 to VX from memory starting at I (I = I + X + 1, CHIP-8 original behavior)|CHIP-8|No|
 |FX75|Store V0 to VX in RPL User Flags (X <= 15)|SuperCHIP V1.0, XO-CHIP V1.1|No|
 |FX85|Store V0 to VX in RPL User Flags (X <= 15)|SuperCHIP V1.0, XO-CHIP V1.1|No|
-|FXC0|Sets the Tracker Mode's base pitch to the value stored in VX|MUSX-CHIP V0.1|N/A|
