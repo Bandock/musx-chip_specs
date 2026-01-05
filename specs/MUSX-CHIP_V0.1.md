@@ -41,9 +41,8 @@ Tracker Mode Word Format (Big Endian):
 
 |Bits |Description |Value Range |
 |-----|------------|------------|
-|12-15|Next Note Offset (1 + Offset by Word Alignment)|-8 to 7|
-|8-11|Note Duration|0 to 15|
-|6-7|Unused|0 to 1|
+|10-15|Next Note Offset (1 + Offset by Word Alignment)|-32 to 31|
+|6-9|Note Duration|0 to 15|
 |4-5|Octave (Affects Tracker Mode Pitch)|0 to 3|
 |0-3|Note (0 = Indicates Rest, otherwise affects Tracker Mode Pitch)|0 to 12|
 
