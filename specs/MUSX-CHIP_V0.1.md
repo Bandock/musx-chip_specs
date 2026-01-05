@@ -18,6 +18,11 @@ Formulas:
 - Tracker Mode Pitch = 20 + (Octave * 48) + ((Note Value - 1) * 4)
 
 
+Beeper Mode and Tracker Mode Operation:
+- Tracker Mode must be enabled using the 00F1 instruction for it to start operating.  This gives the opportunity to set the Tracker Source Index register that points to 16-bit data using the Tracker Mode Word Format.  Once Tracker Mode is enabled, it will start playing audio using that data whenever the Sound Timer register is 0.  Tracker Mode is excellent for music or special sound effects.
+- Whenever the Sound Timer Register is nonzero, it will switch to Beeper Mode.  This will operate in the fashion dating back to CHIP-8.  Beeper Mode is excellent for producing sound effects.
+
+
 Registers:
 
 |Register |Description |Value Range |Accessible |
