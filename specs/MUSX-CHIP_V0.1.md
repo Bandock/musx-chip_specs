@@ -7,22 +7,26 @@ Technical Specifications:
 - 16 Color Support
 - Introduces Tracker Mode (Must be enabled) that works alongside Beeper Mode
 - Two Pitch Values (Beeper Pitch Value and Tracker Pitch Value)
-- Tempo Support for Tracker Mode (15 BPM-240 BPM, 4-bit in increments of 15)
+- Tempo Support for Tracker Mode (15 Hz-240 Hz, 4-bit in increments of 15)
 - Note Duration Timer Register for Tracker Mode (8-bit)
 - Volume Support for Beeper and Tracker Modes
-- Introduces the TSI (Tracker Source Index) Register (Serves as the pointer for Tracker Mode)
+- Introduces the TNSI (Tracker Note Source Index) Register (Serves as the pointer for notes in Tracker Mode)
+- Introduces the TDSI (Tracker Dynamics Source Index) Register (Serves as the pointer for dynamics in Tracker Mode)
 - Tracker Mode Audio Buffer Support
 
-
+  
 Formulas:
-- Audio Playback Rate = 4000 * 2^((Pitch Register - 64) / 48)
+- Audio Playback Rate = 4000 * 2 ^ ((Pitch Register - 64) / 48)
 - Tracker Mode Pitch = 20 + (Octave * 48) + ((Note Value - 1) * 4)
+- Tracker Volume = 255 * ((Dynamic Target + 1) / 16)
+- Note Duration Timer and Dynamics Duration Timer = 255 >> (7 - Duration Value)
 
 
 Beeper Mode and Tracker Mode Operation:
-- Tracker Mode must be enabled using the 00F1 instruction for it to start operating as it is disabled by default.  This gives the opportunity to set the Tracker Source Index register that points to 16-bit data using the Tracker Mode Word Format.  Once Tracker Mode is enabled, it will start playing audio using that data whenever the Sound Timer register is 0.  Tracker Mode is excellent for music or special sound effects.
+- Tracker Mode must be enabled using the 00F1 instruction for it to start operating as it is disabled by default.  This gives the opportunity to set the Tracker Note Source Index register that points to 16-bit data using the Tracker Mode Note Word Format along with the Tracker Dynamics Source Index register that points to 16-bit data using the Tracker Mode Dynamics Word Format.  Once Tracker Mode is enabled, it will start playing audio using that data whenever the Sound Timer register is 0.  Tracker Mode is excellent for music or special sound effects.
 - Whenever the Sound Timer Register is nonzero, it will switch to Beeper Mode.  This will operate in the fashion dating back to CHIP-8.  Beeper Mode is excellent for producing sound effects.
 - Beeper Mode and Tracker Mode use their own audio buffers, allowing for Beeper Mode to play its own sound effects separately from Tracker Mode.
+- Tracker Mode's Dynamics Buffer enables volume control as notes are played.  You can apply multiple dynamics on the same note or multiple notes on the same dynamic.
 
 
 Registers:
@@ -33,20 +37,35 @@ Registers:
 |DT|Delay Timer|0-255|Yes|
 |ST|Sound Timer|0-255|Only through one instruction|
 |NDT|Note Duration Timer|0-255|No, it is only accessed by Tracker Mode|
+|DDT|Dynamics Duration Timer|0-255|No, it is only accessed by Tracker Mode|
 |PTCH|Pitch|0-255|Only through one instruction|
+|BVOL|Beeper Volume|0-255|Only through one instruction|
+|TVOL|Tracker Volume|0-255|No, it is only accessed by Tracker Mode|
 |PC|Program Counter|0-65535|Only by various instructions|
 |I|Address|0-65535|Yes|
-|TSI|Tracker Source Index|0-65535|Yes|
+|TNSI|Tracker Note Source Index|0-65535|Yes|
+|TDSI|Tracker Dynamics Source Index|0-65535|Yes|
 
 
-Tracker Mode Word Format (Big Endian):
+Tracker Mode Note Word Format (Big Endian):
 
 |Bits |Description |Value Range |
 |-----|------------|------------|
 |10-15|Next Note Offset (1 + Offset by Word Alignment)|-32 to 31|
-|6-9|Note Duration|0 to 15|
+|9|Unused|0 to 1|
+|6-8|Note Duration|0 to 7|
 |4-5|Octave (Affects Tracker Mode Pitch)|0 to 3|
 |0-3|Note (0 = Indicates Rest, otherwise affects Tracker Mode Pitch)|0 to 12|
+
+
+Tracker Mode Dynamics Word Format (Big Endian):
+
+|Bits |Description |Value Range |
+|-----|------------|------------|
+|10-15|Next Dynamics Offset (1 + Offset by Word Alignment)|-32 to 31|
+|7-9|Dynamics Duration|0 to 7|
+|5-6|Dynamics Mode (0 = Static, 1 = Crescendo, 2 = Decrescendo, 3 = Unused)|0 to 3|
+|0-3|Dynamics Target|0 to 15|
 
 
 Supported Instructions:
@@ -92,8 +111,9 @@ Supported Instructions:
 |F000 NNNN|Set I to NNNN|XO-CHIP|No|
 |FN01|Sets the current drawing bit plane (N = 0 for No Draw, N = 1 for Plane 1, N = 2 for Plane 2, N = 3 for Plane 1 and 2)|XO-CHIP|No|
 |F002|Load the Beeper Mode's audio buffer from memory at I|XO-CHIP|No|
-|F003|Sets TSI to I|MUSX-CHIP V0.1|N/A|
-|F004|Load the Tracker Mode's audio buffer from memory at I|MUSX-CHIP V0.1|N/A|
+|F003|Load the Tracker Mode's audio buffer from memory at I|MUSX-CHIP V0.1|N/A|
+|F004|Sets TNSI to I|MUSX-CHIP V0.1|N/A|
+|F005|Sets TDSI to I|MUSX-CHIP V0.1|N/A|
 |FX07|Store Delay Timer to VX|CHIP-8|No|
 |FX18|Set Sound Timer to VX|CHIP-8|No|
 |FX1E|Add Value Stored in VX to I|CHIP-8|No|
